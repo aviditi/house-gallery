@@ -1,0 +1,14 @@
+{
+  "name": "house-gallery",
+  "version": "1.0.0",
+  "description": "Paste a Zillow link, get a price-free photo gallery to share.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "export": "node export.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "private": true
+}

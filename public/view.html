@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home photos</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="view-body">
+  <header class="view-header">
+    <a class="back" href="/">&larr; All homes</a>
+    <div class="view-titles">
+      <h1 id="addr">Loading…</h1>
+      <p id="facts" class="facts"></p>
+    </div>
+    <span id="counter" class="counter"></span>
+  </header>
+
+  <main id="gallery" class="photo-grid"></main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lb-close" aria-label="Close">&times;</button>
+    <button class="lb-nav lb-prev" aria-label="Previous">&#8249;</button>
+    <img id="lb-img" src="" alt="" />
+    <button class="lb-nav lb-next" aria-label="Next">&#8250;</button>
+  </div>
+
+  <script src="/view.js"></script>
+</body>
+</html>

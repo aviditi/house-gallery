@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>House Gallery — price-free listing viewer</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>House Gallery</h1>
+    <p class="tagline">Paste a Zillow or StreetEasy link. Get a clean photo gallery with the price hidden — perfect to share with family.</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <form id="scrape-form">
+        <label for="url">Listing URL</label>
+        <div class="row">
+          <input
+            id="url"
+            name="url"
+            type="url"
+            placeholder="https://www.zillow.com/homedetails/.../12345_zpid/"
+            autocomplete="off"
+            required
+          />
+          <button id="go" type="submit">Hide&nbsp;prices</button>
+        </div>
+        <p id="status" class="status" hidden></p>
+      </form>
+      <p id="proxy-note" class="proxy-note" hidden></p>
+    </section>
+
+    <section id="gallery-section">
+      <h2>Saved homes</h2>
+      <p id="empty" class="muted" hidden>No homes yet — paste a link above to add one.</p>
+      <div id="grid" class="grid"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

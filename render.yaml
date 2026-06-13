@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: house-gallery
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PROXY_PROVIDER
+        value: scraperapi
+      # Set the actual key in the Render dashboard (kept out of git).
+      - key: PROXY_API_KEY
+        sync: false

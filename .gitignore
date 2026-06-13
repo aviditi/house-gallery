@@ -1,0 +1,4 @@
+.env
+node_modules/
+data/listings.json
+.DS_Store
