@@ -74,6 +74,8 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: manipulation;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -329,6 +331,9 @@ img { max-width: 100%; display: block; }
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 26px;
+  width: 100%;
+  padding: 0;
+  margin: 0 auto;
 }
 
 .card {
@@ -596,9 +601,17 @@ img { max-width: 100%; display: block; }
   padding: 18px;
   max-width: 1500px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 @media (max-width: 620px) {
-  .photo-grid { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  .photo-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+    width: 100%;
+    overflow: hidden;
+  }
 }
 
 .photo {
