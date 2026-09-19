@@ -173,6 +173,7 @@ const server = http.createServer(async (req, res) => {
     const list = readListings().map((l) => ({
       id: l.id,
       address: l.address,
+      facts: l.facts || [],
       cover: coverOf(l),
       count: l.photos.length,
       createdAt: l.createdAt,

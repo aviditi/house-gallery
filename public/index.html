@@ -3,41 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Property Snap — price-free listing viewer</title>
+  <title>Property Snap — share the home, not the price</title>
+  <meta name="description" content="Paste a Zillow or StreetEasy link and get a clean, price-free photo gallery you can share with family." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f9b6e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10.5 12 3l9 7.5'/%3E%3Cpath d='M5 9.5V21h14V9.5'/%3E%3Ccircle cx='12' cy='14' r='3'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header class="site-header">
-    <h1>Property Snap</h1>
-    <p class="tagline">Paste a Zillow or StreetEasy link. Get a clean photo gallery with the price hidden — perfect to share with family.</p>
-  </header>
+  <div class="glow"></div>
 
-  <main class="container">
-    <section class="card">
-      <form id="scrape-form">
-        <label for="url">Listing URL</label>
-        <div class="row">
-          <input
-            id="url"
-            name="url"
-            type="url"
-            placeholder="https://www.zillow.com/homedetails/.../12345_zpid/"
-            autocomplete="off"
-            required
-          />
-          <button id="go" type="submit">Hide&nbsp;prices</button>
-        </div>
-        <p id="status" class="status" hidden></p>
+  <nav class="nav">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /><circle cx="12" cy="14" r="3" />
+        </svg>
+      </span>
+      <span class="brand-name">Property Snap</span>
+    </div>
+    <span class="nav-note">Prices hidden, always</span>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <span class="badge">No prices &middot; No estimates &middot; Just the home</span>
+      <h1>Share the home,<br /><em>not the price tag.</em></h1>
+      <p class="sub">
+        Paste a Zillow or StreetEasy link. Property Snap strips out every dollar
+        figure and gives you a clean photo gallery to send to family and friends.
+      </p>
+
+      <form id="scrape-form" class="search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7" />
+          <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7" />
+        </svg>
+        <label for="url" class="sr-only" hidden>Listing URL</label>
+        <input id="url" name="url" type="url" placeholder="Paste a Zillow or StreetEasy link…" autocomplete="off" required />
+        <button id="go" class="btn" type="submit">Snap it</button>
       </form>
-      <p id="proxy-note" class="proxy-note" hidden></p>
-    </section>
 
-    <section id="gallery-section">
-      <h2>Saved homes</h2>
-      <p id="empty" class="muted" hidden>No homes yet — paste a link above to add one.</p>
+      <p id="status" class="status" hidden></p>
+      <p id="proxy-note" class="proxy-note" hidden></p>
+    </header>
+
+    <section class="collection">
+      <div class="section-head">
+        <h2>Your homes</h2>
+        <span class="hint" id="hint"></span>
+      </div>
+
+      <div id="empty" class="empty" hidden>
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /><circle cx="12" cy="14" r="3" />
+          </svg>
+        </div>
+        <h3>No homes yet</h3>
+        <p>Paste a listing link above and it'll show up here, price-free.</p>
+      </div>
+
       <div id="grid" class="grid"></div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    Property Snap &middot; photos only, financials never leave the listing.
+  </footer>
+
+  <div id="toast" class="toast"></div>
 
   <script src="/app.js"></script>
 </body>
