@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: house-gallery
+    name: property-snap
     runtime: node
     plan: free
     buildCommand: npm install

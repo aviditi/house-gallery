@@ -1,8 +1,8 @@
-# House Gallery
+# Property Snap
 
 A price-free photo gallery viewer for real estate listings. Paste a Zillow or StreetEasy link, and get a clean, shareable gallery of the property photos with all financial data stripped out.
 
-**Live:** [https://house-gallery.onrender.com](https://house-gallery.onrender.com)
+**Live:** [https://property-snap.onrender.com](https://property-snap.onrender.com)
 
 ## Why
 

@@ -1,7 +1,7 @@
 {
-  "name": "house-gallery",
+  "name": "property-snap",
   "version": "1.0.0",
-  "description": "Paste a Zillow link, get a price-free photo gallery to share.",
+  "description": "Paste a Zillow or StreetEasy link, get a price-free photo gallery to share.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
