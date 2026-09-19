@@ -11,12 +11,14 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'listings.json');
+const PREFS_FILE = path.join(DATA_DIR, 'prefs.json');
 
 // ---- storage ---------------------------------------------------------------
 
 function ensureStore() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
+  if (!fs.existsSync(PREFS_FILE)) fs.writeFileSync(PREFS_FILE, '{}');
 }
 
 function readListings() {
@@ -31,6 +33,24 @@ function readListings() {
 function writeListings(list) {
   ensureStore();
   fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2));
+}
+
+function readPrefs() {
+  ensureStore();
+  try {
+    return JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function writePrefs(prefs) {
+  ensureStore();
+  fs.writeFileSync(PREFS_FILE, JSON.stringify(prefs, null, 2));
+}
+
+function generatePrefToken() {
+  return crypto.randomBytes(12).toString('hex');
 }
 
 // ---- price-free sanitization ----------------------------------------------
@@ -167,6 +187,28 @@ const server = http.createServer(async (req, res) => {
     const { provider, ready } = proxyConfig();
     sendJson(res, 200, { provider, configured: ready });
     return;
+  }
+
+  if (pathname === '/api/prefs' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const prefs = readPrefs();
+      const token = generatePrefToken();
+      prefs[token] = body;
+      writePrefs(prefs);
+      return sendJson(res, 201, { token });
+    } catch (e) {
+      return sendJson(res, 400, { error: 'Invalid request.' });
+    }
+  }
+
+  const prefMatch = pathname.match(/^\/api\/prefs\/([a-f0-9]+)$/);
+  if (prefMatch && req.method === 'GET') {
+    const token = prefMatch[1];
+    const prefs = readPrefs();
+    const found = prefs[token];
+    if (!found) return sendJson(res, 404, { error: 'Preferences not found' });
+    return sendJson(res, 200, found);
   }
 
   if (pathname === '/api/listings' && req.method === 'GET') {

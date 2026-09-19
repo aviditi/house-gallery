@@ -59,17 +59,24 @@ function toast(msg) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
 }
 
-function loadPrefs() {
-  // Check URL params first (from shared link), then localStorage, then defaults
+async function loadPrefs() {
   const params = new URLSearchParams(location.search);
-  const hasUrlParams = params.has('hideAddress') || params.has('hideSpecs') || params.has('hideYear') || params.has('hideType');
+  const prefToken = params.get('prefs');
 
-  if (hasUrlParams) {
-    // Load from URL (shared link preferences)
-    showAddressCheckbox.checked = params.get('hideAddress') !== '1';
-    showSpecsCheckbox.checked = params.get('hideSpecs') !== '1';
-    showYearCheckbox.checked = params.get('hideYear') !== '1';
-    showTypeCheckbox.checked = params.get('hideType') !== '1';
+  if (prefToken) {
+    // Load from server (shared link preferences)
+    try {
+      const r = await fetch(`/api/prefs/${prefToken}`);
+      if (r.ok) {
+        const prefs = await r.json();
+        showAddressCheckbox.checked = prefs.showAddress !== false;
+        showSpecsCheckbox.checked = prefs.showSpecs !== false;
+        showYearCheckbox.checked = prefs.showYear !== false;
+        showTypeCheckbox.checked = prefs.showType !== false;
+      }
+    } catch (e) {
+      console.error('Failed to load preferences:', e);
+    }
   } else {
     // Load from localStorage (personal preferences)
     const saved = localStorage.getItem(`prefs_${id}`);
@@ -254,38 +261,52 @@ showYearCheckbox.addEventListener('change', savePrefs);
 showTypeCheckbox.addEventListener('change', savePrefs);
 
 shareBtn.addEventListener('click', async () => {
-  // Build share URL with current preference settings encoded
-  const params = new URLSearchParams();
-  if (!showAddressCheckbox.checked) params.set('hideAddress', '1');
-  if (!showSpecsCheckbox.checked) params.set('hideSpecs', '1');
-  if (!showYearCheckbox.checked) params.set('hideYear', '1');
-  if (!showTypeCheckbox.checked) params.set('hideType', '1');
+  // Create a server-stored preference token and build URL with it
+  const prefs = {
+    showAddress: showAddressCheckbox.checked,
+    showSpecs: showSpecsCheckbox.checked,
+    showYear: showYearCheckbox.checked,
+    showType: showTypeCheckbox.checked,
+  };
 
-  const baseUrl = location.pathname + location.hash;
-  const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
-  const fullUrl = location.origin + url;
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: addrEl.textContent, url: fullUrl });
-      return;
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-    }
-  }
   try {
-    await navigator.clipboard.writeText(fullUrl);
+    const r = await fetch('/api/prefs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(prefs),
+    });
+    if (!r.ok) throw new Error('Failed to create preferences');
+    const { token } = await r.json();
+
+    const baseUrl = location.pathname + location.hash;
+    const url = `${baseUrl}?prefs=${token}`;
+    const fullUrl = location.origin + url;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: addrEl.textContent, url: fullUrl });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+    } catch (e) {
+      const t = document.createElement('textarea');
+      t.value = url;
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand('copy');
+      t.remove();
+    }
+    toast('Link copied — settings encrypted');
+    shareLabel.textContent = 'Copied';
+    shareBtn.classList.add('copied');
+    setTimeout(() => { shareLabel.textContent = 'Share'; shareBtn.classList.remove('copied'); }, 1600);
   } catch (e) {
-    const t = document.createElement('textarea');
-    t.value = url;
-    document.body.appendChild(t);
-    t.select();
-    document.execCommand('copy');
-    t.remove();
+    console.error('Share failed:', e);
+    toast('Share failed, try again');
   }
-  toast('Link copied — prices stay hidden');
-  shareLabel.textContent = 'Copied';
-  shareBtn.classList.add('copied');
-  setTimeout(() => { shareLabel.textContent = 'Share'; shareBtn.classList.remove('copied'); }, 1600);
 });
 
 load();
