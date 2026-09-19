@@ -268,5 +268,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`House Gallery running at http://localhost:${PORT}`);
+  console.log(`Property Snap running at http://localhost:${PORT}`);
 });
