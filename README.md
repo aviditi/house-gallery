@@ -1,6 +1,6 @@
 # Property Snap
 
-A price-free photo gallery viewer for real estate listings. Paste a Zillow or StreetEasy link, and get a clean, shareable gallery of the property photos with all financial data stripped out.
+A price-free photo gallery viewer for real estate listings. Paste a Zillow link and get a clean, shareable gallery of the property photos with all financial data stripped out.
 
 **Live:** [https://property-snap.onrender.com](https://property-snap.onrender.com)
 
@@ -10,7 +10,7 @@ Real estate listings are packed with prices, zestimates, tax history, and financ
 
 ## Features
 
-- **Paste a link.** Drop a Zillow or StreetEasy URL into the home page.
+- **Paste a link.** Drop a Zillow URL into the home page.
 - **Automatic scraping.** Fetches the listing page, extracts all photos at the highest available resolution, and parses out address and specs.
 - **No prices.** Strips every financial field: price, zestimate, tax estimates, HOA fees, everything.
 - **Shareable galleries.** Each listing gets a permanent `/v/<id>` link to send to family and friends.
@@ -24,7 +24,7 @@ Real estate listings are packed with prices, zestimates, tax history, and financ
 - **Residential proxy routing** via:
   - [ScraperAPI](https://scraperapi.com) — full-page rendering (JS execution) + residential IPs
   - [Webshare](https://webshare.io) — raw HTTP/CONNECT proxy tunneling
-- **Photo extraction** via JSON parsing of Zillow's embedded `__NEXT_DATA__` and StreetEasy's page markup
+- **Photo extraction** via JSON parsing of Zillow's embedded `__NEXT_DATA__`
 - **File-based storage** (JSON; can be replaced with a database)
 
 ### Frontend
@@ -68,7 +68,7 @@ node server.js
 
 ## How It Works
 
-1. **Paste a Zillow/StreetEasy URL** into the home page.
+1. **Paste a Zillow URL** into the home page.
 2. **Server fetches** via a residential proxy / scraping API (to bypass bot protection).
 3. **Parser extracts**:
    - High-resolution photo URLs from embedded JSON
@@ -141,14 +141,12 @@ house-gallery/
 ## Limitations
 
 - **Zillow fetch requires a residential proxy** (datacenter IPs are blocked by PerimeterX). ScraperAPI's free tier renders JS and routes through residential IPs; it's the recommended provider.
-- **StreetEasy listings** require ScraperAPI's paid plan or a residential proxy; the free tier doesn't work.
 - **Free Render tier** resets the filesystem on deploy/restart — saved listings survive restarts but will clear if you push code changes. For persistent listings, upgrade to Render's paid tier or use a database.
 
 ## Future Ideas
 
 - Browser extension or bookmarklet for in-page capture (works on your own browser, no proxy needed).
 - Persistent database (PostgreSQL) instead of JSON file.
-- StreetEasy parser tuning (currently requires premium proxy).
 - Batch import (paste multiple URLs at once).
 
 ## License

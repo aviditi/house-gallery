@@ -190,8 +190,8 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       return sendJson(res, 400, { error: 'Invalid request body.' });
     }
-    if (!/^https?:\/\/(www\.)?(zillow\.com|streeteasy\.com)\//i.test(targetUrl)) {
-      return sendJson(res, 400, { error: 'Please paste a Zillow or StreetEasy listing URL.' });
+    if (!/^https?:\/\/(www\.)?zillow\.com\//i.test(targetUrl)) {
+      return sendJson(res, 400, { error: 'Please paste a Zillow listing URL.' });
     }
     let host = 'zillow.com';
     try {
