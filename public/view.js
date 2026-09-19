@@ -60,13 +60,26 @@ function toast(msg) {
 }
 
 function loadPrefs() {
-  const saved = localStorage.getItem(`prefs_${id}`);
-  if (saved) {
-    const prefs = JSON.parse(saved);
-    showAddressCheckbox.checked = prefs.showAddress !== false;
-    showSpecsCheckbox.checked = prefs.showSpecs !== false;
-    showYearCheckbox.checked = prefs.showYear !== false;
-    showTypeCheckbox.checked = prefs.showType !== false;
+  // Check URL params first (from shared link), then localStorage, then defaults
+  const params = new URLSearchParams(location.search);
+  const hasUrlParams = params.has('hideAddress') || params.has('hideSpecs') || params.has('hideYear') || params.has('hideType');
+
+  if (hasUrlParams) {
+    // Load from URL (shared link preferences)
+    showAddressCheckbox.checked = params.get('hideAddress') !== '1';
+    showSpecsCheckbox.checked = params.get('hideSpecs') !== '1';
+    showYearCheckbox.checked = params.get('hideYear') !== '1';
+    showTypeCheckbox.checked = params.get('hideType') !== '1';
+  } else {
+    // Load from localStorage (personal preferences)
+    const saved = localStorage.getItem(`prefs_${id}`);
+    if (saved) {
+      const prefs = JSON.parse(saved);
+      showAddressCheckbox.checked = prefs.showAddress !== false;
+      showSpecsCheckbox.checked = prefs.showSpecs !== false;
+      showYearCheckbox.checked = prefs.showYear !== false;
+      showTypeCheckbox.checked = prefs.showType !== false;
+    }
   }
   updateVisibility();
 }
@@ -241,17 +254,26 @@ showYearCheckbox.addEventListener('change', savePrefs);
 showTypeCheckbox.addEventListener('change', savePrefs);
 
 shareBtn.addEventListener('click', async () => {
-  const url = location.href;
+  // Build share URL with current preference settings encoded
+  const params = new URLSearchParams();
+  if (!showAddressCheckbox.checked) params.set('hideAddress', '1');
+  if (!showSpecsCheckbox.checked) params.set('hideSpecs', '1');
+  if (!showYearCheckbox.checked) params.set('hideYear', '1');
+  if (!showTypeCheckbox.checked) params.set('hideType', '1');
+
+  const baseUrl = location.pathname + location.hash;
+  const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  const fullUrl = location.origin + url;
   if (navigator.share) {
     try {
-      await navigator.share({ title: addrEl.textContent, url });
+      await navigator.share({ title: addrEl.textContent, url: fullUrl });
       return;
     } catch (e) {
       if (e.name === 'AbortError') return;
     }
   }
   try {
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(fullUrl);
   } catch (e) {
     const t = document.createElement('textarea');
     t.value = url;
