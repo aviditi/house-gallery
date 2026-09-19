@@ -585,33 +585,63 @@ img { max-width: 100%; display: block; }
 .btn-share svg { width: 15px; height: 15px; }
 .btn-share.copied { background: var(--accent); color: var(--accent-ink); }
 
-/* ---------- masonry photo grid ---------- */
+/* ---------- photo grid ----------
+   Fixed-ratio tiles reserve their space before the image arrives, so nothing
+   reflows as photos stream in. Tiles shimmer, then the image fades over them. */
 
-.masonry {
-  column-count: 3;
-  column-gap: 14px;
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
   padding: 18px;
   max-width: 1500px;
   margin: 0 auto;
 }
-@media (max-width: 1000px) { .masonry { column-count: 2; } }
-@media (max-width: 620px) { .masonry { column-count: 1; } }
+@media (max-width: 620px) {
+  .photo-grid { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+}
 
 .photo {
-  margin: 0 0 14px;
-  break-inside: avoid;
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3;
   border-radius: var(--r-md);
   overflow: hidden;
   background: var(--canvas-2);
   box-shadow: var(--shadow-sm);
   cursor: zoom-in;
-  position: relative;
+  /* skip rendering work for tiles far off screen (108+ photos per listing) */
+  content-visibility: auto;
+  contain-intrinsic-size: 340px 255px;
 }
+
+/* shimmering placeholder, hidden once the photo has faded in */
+.photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--canvas-2) 25%, var(--line) 37%, var(--canvas-2) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  transition: opacity 0.3s ease;
+}
+.photo.loaded::before { opacity: 0; animation: none; }
+
 .photo img {
+  position: relative;
   width: 100%;
-  transition: transform 0.45s cubic-bezier(.2,.7,.3,1), filter 0.25s ease;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(.2,.7,.3,1);
 }
-.photo:hover img { transform: scale(1.035); filter: brightness(1.04); }
+.photo.loaded img { opacity: 1; }
+.photo:hover img { transform: scale(1.04); }
+
+@media (prefers-reduced-motion: reduce) {
+  .photo img { transition: opacity 0.01s; }
+  .photo::before { animation: none; }
+}
 
 /* ---------- lightbox ---------- */
 
@@ -637,7 +667,11 @@ img { max-width: 100%; display: block; }
   object-fit: contain;
   border-radius: var(--r-md);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  transition: filter 0.3s ease;
 }
+/* while the full-size photo downloads we show the cached thumbnail, softened
+   so the upscale doesn't read as blurry-broken, then sharpen on arrival */
+.lightbox img.loading { filter: blur(12px); }
 
 .lb-close, .lb-nav {
   position: absolute;

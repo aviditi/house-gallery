@@ -15,8 +15,34 @@ const lbCount = document.getElementById('lb-count');
 
 let photos = [];
 let current = 0;
+let lbToken = 0;
 
-const src = (p) => p.webp || p.jpeg;
+/* Zillow serves every photo at a range of widths; the stored URL is the
+   largest. Grid tiles only need a few hundred pixels, so swapping the size
+   token avoids pulling ~286KB per thumbnail. */
+// Tiles cap out around 380px CSS, so 768 covers even a 2x display. Offering
+// anything larger just makes the browser over-fetch.
+const SIZES = [384, 576, 768];
+const TILE_SIZES = '(max-width: 620px) 100vw, (max-width: 1000px) 50vw, 380px';
+
+function atSize(url, size) {
+  if (!url) return url;
+  return url.replace(/-cc_ft_\d+\./, `-cc_ft_${size}.`);
+}
+function isResizable(url) {
+  return typeof url === 'string' && /-cc_ft_\d+\./.test(url);
+}
+
+const full = (p) => p.webp || p.jpeg;
+const thumb = (p) => {
+  const u = full(p);
+  return isResizable(u) ? atSize(u, 576) : u;
+};
+function srcsetFor(p) {
+  const u = full(p);
+  if (!isResizable(u)) return '';
+  return SIZES.map((s) => `${atSize(u, s)} ${s}w`).join(', ');
+}
 
 let toastTimer;
 function toast(msg) {
@@ -40,18 +66,43 @@ async function load() {
   factsEl.textContent = (data.facts || []).join('  ·  ');
   counterEl.textContent = `${photos.length} photo${photos.length === 1 ? '' : 's'}`;
 
-  gallery.innerHTML = '';
+  const frag = document.createDocumentFragment();
   photos.forEach((p, i) => {
     const fig = document.createElement('figure');
     fig.className = 'photo';
+
     const img = document.createElement('img');
-    img.loading = 'lazy';
-    img.src = src(p);
     img.alt = `Photo ${i + 1} of ${photos.length}`;
+    img.decoding = 'async';
+    const ss = srcsetFor(p);
+    if (ss) {
+      img.srcset = ss;
+      img.sizes = TILE_SIZES;
+    }
+    img.src = thumb(p);
+
+    // the first screenful loads immediately; everything else waits for scroll
+    if (i < 9) {
+      img.loading = 'eager';
+      img.fetchPriority = 'high';
+    } else {
+      img.loading = 'lazy';
+    }
+
+    const reveal = () => fig.classList.add('loaded');
+    if (img.complete && img.naturalWidth) reveal();
+    else {
+      img.addEventListener('load', reveal, { once: true });
+      img.addEventListener('error', reveal, { once: true });
+    }
+
     fig.appendChild(img);
     fig.addEventListener('click', () => open(i));
-    gallery.appendChild(fig);
+    frag.appendChild(fig);
   });
+
+  gallery.innerHTML = '';
+  gallery.appendChild(frag);
 }
 
 function open(i) {
@@ -68,9 +119,38 @@ function step(d) {
   current = (current + d + photos.length) % photos.length;
   render();
 }
+
 function render() {
-  lbImg.src = src(photos[current]);
+  const p = photos[current];
+  const hiRes = full(p);
+  const token = ++lbToken;
+
   lbCount.textContent = `${current + 1} / ${photos.length}`;
+
+  // show the already-cached thumbnail instantly, blurred, then sharpen to the
+  // full-size photo once it arrives — avoids a blank frame on first view
+  lbImg.src = thumb(p);
+  lbImg.classList.add('loading');
+
+  const hi = new Image();
+  hi.onload = () => {
+    if (token !== lbToken) return;
+    lbImg.src = hiRes;
+    lbImg.classList.remove('loading');
+  };
+  hi.onerror = () => {
+    if (token === lbToken) lbImg.classList.remove('loading');
+  };
+  hi.src = hiRes;
+
+  preloadNeighbors();
+}
+
+function preloadNeighbors() {
+  [1, -1].forEach((d) => {
+    const p = photos[(current + d + photos.length) % photos.length];
+    if (p) new Image().src = full(p);
+  });
 }
 
 lightbox.querySelector('.lb-close').addEventListener('click', close);

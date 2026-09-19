@@ -21,6 +21,17 @@ const ICON = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14"/></svg>',
 };
 
+/* Card covers are ~300px wide; the stored URL is the 1536px original, so swap
+   the size token down rather than pulling ~286KB per cover. */
+function atSize(url, size) {
+  return url.replace(/-cc_ft_\d+\./, `-cc_ft_${size}.`);
+}
+function coverAttrs(url) {
+  if (!/-cc_ft_\d+\./.test(url)) return `src="${escapeHtml(url)}"`;
+  const set = [384, 576, 768].map((s) => `${escapeHtml(atSize(url, s))} ${s}w`).join(', ');
+  return `src="${escapeHtml(atSize(url, 576))}" srcset="${set}" sizes="(max-width: 700px) 100vw, 340px"`;
+}
+
 let toastTimer;
 function toast(msg) {
   toastEl.textContent = msg;
@@ -86,7 +97,7 @@ function cardHtml(it) {
   return `<article class="card">
     <a href="/v/${encodeURIComponent(it.id)}">
       <div class="card-media">
-        ${it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="">` : ''}
+        ${it.cover ? `<img loading="lazy" decoding="async" ${coverAttrs(it.cover)} alt="">` : ''}
         <span class="pill">${ICON.photos}${it.count}</span>
       </div>
       <div class="card-body">
