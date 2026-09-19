@@ -9,6 +9,13 @@ const shareBtn = document.getElementById('share');
 const shareLabel = document.getElementById('share-label');
 const toastEl = document.getElementById('toast');
 
+const prefsToggle = document.getElementById('prefs-toggle');
+const prefsPanel = document.getElementById('prefs-panel');
+const showAddressCheckbox = document.getElementById('show-address');
+const showSpecsCheckbox = document.getElementById('show-specs');
+const showYearCheckbox = document.getElementById('show-year');
+const showTypeCheckbox = document.getElementById('show-type');
+
 const lightbox = document.getElementById('lightbox');
 const lbImg = document.getElementById('lb-img');
 const lbCount = document.getElementById('lb-count');
@@ -52,6 +59,51 @@ function toast(msg) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
 }
 
+function loadPrefs() {
+  const saved = localStorage.getItem(`prefs_${id}`);
+  if (saved) {
+    const prefs = JSON.parse(saved);
+    showAddressCheckbox.checked = prefs.showAddress !== false;
+    showSpecsCheckbox.checked = prefs.showSpecs !== false;
+    showYearCheckbox.checked = prefs.showYear !== false;
+    showTypeCheckbox.checked = prefs.showType !== false;
+  }
+  updateVisibility();
+}
+
+function savePrefs() {
+  const prefs = {
+    showAddress: showAddressCheckbox.checked,
+    showSpecs: showSpecsCheckbox.checked,
+    showYear: showYearCheckbox.checked,
+    showType: showTypeCheckbox.checked,
+  };
+  localStorage.setItem(`prefs_${id}`, JSON.stringify(prefs));
+  updateVisibility();
+}
+
+function updateVisibility() {
+  const showAddr = showAddressCheckbox.checked;
+  const showSpecs = showSpecsCheckbox.checked;
+  const showYear = showYearCheckbox.checked;
+  const showType = showTypeCheckbox.checked;
+
+  addrEl.style.display = showAddr ? '' : 'none';
+
+  if (!showSpecs && !showYear && !showType) {
+    factsEl.style.display = 'none';
+  } else {
+    factsEl.style.display = '';
+    const facts = factsEl.textContent.split('  ·  ');
+    const filtered = facts.filter((fact, i) => {
+      if (i === 0) return showSpecs; // beds, baths, sqft
+      if (i === 1) return showYear; // year
+      return showType; // type
+    });
+    factsEl.textContent = filtered.join('  ·  ');
+  }
+}
+
 async function load() {
   const r = await fetch('/api/listings/' + id);
   if (!r.ok) {
@@ -65,6 +117,8 @@ async function load() {
   addrEl.textContent = data.address || 'Home';
   factsEl.textContent = (data.facts || []).join('  ·  ');
   counterEl.textContent = `${photos.length} photo${photos.length === 1 ? '' : 's'}`;
+
+  loadPrefs();
 
   const frag = document.createDocumentFragment();
   photos.forEach((p, i) => {
@@ -164,6 +218,27 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowLeft') step(-1);
   else if (e.key === 'ArrowRight') step(1);
 });
+
+prefsToggle.addEventListener('click', () => {
+  prefsPanel.hidden = !prefsPanel.hidden;
+  if (!prefsPanel.hidden) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
+
+prefsPanel.addEventListener('click', (e) => {
+  if (e.target === prefsPanel) {
+    prefsPanel.hidden = true;
+    document.body.style.overflow = '';
+  }
+});
+
+showAddressCheckbox.addEventListener('change', savePrefs);
+showSpecsCheckbox.addEventListener('change', savePrefs);
+showYearCheckbox.addEventListener('change', savePrefs);
+showTypeCheckbox.addEventListener('change', savePrefs);
 
 shareBtn.addEventListener('click', async () => {
   const url = location.href;

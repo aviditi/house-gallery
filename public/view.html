@@ -25,6 +25,9 @@
 
     <div class="viewer-actions">
       <span id="counter" class="chip"></span>
+      <button id="prefs-toggle" class="btn-prefs" type="button" title="Toggle visibility settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </button>
       <button id="share" class="btn-share" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7"/></svg>
         <span id="share-label">Share</span>
@@ -33,6 +36,30 @@
   </header>
 
   <main id="gallery" class="photo-grid"></main>
+
+  <div id="prefs-panel" class="prefs-panel" hidden>
+    <div class="prefs-content">
+      <h3>Display Settings</h3>
+      <div class="prefs-options">
+        <label class="pref-checkbox">
+          <input type="checkbox" id="show-address" checked />
+          <span>Show address</span>
+        </label>
+        <label class="pref-checkbox">
+          <input type="checkbox" id="show-specs" checked />
+          <span>Show beds, baths, sqft</span>
+        </label>
+        <label class="pref-checkbox">
+          <input type="checkbox" id="show-year" checked />
+          <span>Show year built</span>
+        </label>
+        <label class="pref-checkbox">
+          <input type="checkbox" id="show-type" checked />
+          <span>Show home type</span>
+        </label>
+      </div>
+    </div>
+  </div>
 
   <div id="lightbox" class="lightbox" hidden>
     <button class="lb-close" aria-label="Close">
