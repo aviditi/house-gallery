@@ -102,8 +102,11 @@ Checkboxes are clearly labeled, accessible via keyboard (Tab/Space to toggle), a
 
 ### UI Placement
 
-- **Desktop**: Checkboxes appear in a row or grid below/beside the input field, with descriptive labels.
-- **Mobile**: Checkboxes stack vertically below the input, with touch-friendly hitboxes (min 44px).
+**Container Structure**: Checkboxes are positioned BELOW the search input/button, but remain WITHIN the overall search container (same border, padding, and visual boundary).
+
+- **Desktop**: Input and "Snap it" button on one line, checkboxes in a 2-column grid below them, all within the container.
+- **Mobile**: Input and "Snap it" button stacked vertically, checkboxes in a single column below, all within the container.
+- **Visual**: All elements (input, button, checkboxes) share the same background, border, and shadow — one unified form block.
 
 ### Data Flow
 
