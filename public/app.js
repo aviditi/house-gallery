@@ -83,10 +83,10 @@ function loadSearchPrefs() {
   const saved = localStorage.getItem('searchPagePrefs');
   if (saved) {
     const prefs = JSON.parse(saved);
-    showAddressCheckbox.checked = prefs.showAddress !== false;
-    showSpecsCheckbox.checked = prefs.showSpecs !== false;
-    showYearCheckbox.checked = prefs.showYear !== false;
-    showTypeCheckbox.checked = prefs.showType !== false;
+    showAddressCheckbox.checked = prefs.showAddress === true;
+    showSpecsCheckbox.checked = prefs.showSpecs === true;
+    showYearCheckbox.checked = prefs.showYear === true;
+    showTypeCheckbox.checked = prefs.showType === true;
   }
 }
 

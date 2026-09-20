@@ -21,6 +21,7 @@ const lbImg = document.getElementById('lb-img');
 const lbCount = document.getElementById('lb-count');
 
 let photos = [];
+let allFacts = [];
 let current = 0;
 let lbToken = 0;
 
@@ -83,7 +84,9 @@ async function loadPrefs() {
     if (sessionPrefs) {
       try {
         prefs = JSON.parse(sessionPrefs);
-        sessionStorage.removeItem('searchPagePrefs'); // Clear after use
+        sessionStorage.removeItem('searchPagePrefs');
+        // Pin the choice to this listing so revisiting it later matches
+        localStorage.setItem(`prefs_${id}`, JSON.stringify(prefs));
       } catch (e) {
         console.error('Failed to load preferences from sessionStorage:', e);
       }
@@ -124,26 +127,27 @@ function savePrefs() {
   updateVisibility();
 }
 
+/* Facts arrive as a flat list whose length varies with what the listing had
+   ("3 bd", "3 ba", "1,900 sqft", "Built 1939", "Single Family"), so each one is
+   classified by shape — position would misread a listing missing, say, sqft. */
+function factGroup(fact) {
+  if (/\b(bd|ba|sqft)$/.test(fact)) return 'specs';
+  if (/^Built\b/.test(fact)) return 'year';
+  return 'type';
+}
+
 function updateVisibility() {
-  const showAddr = showAddressCheckbox.checked;
-  const showSpecs = showSpecsCheckbox.checked;
-  const showYear = showYearCheckbox.checked;
-  const showType = showTypeCheckbox.checked;
+  const shown = {
+    specs: showSpecsCheckbox.checked,
+    year: showYearCheckbox.checked,
+    type: showTypeCheckbox.checked,
+  };
 
-  addrEl.style.display = showAddr ? '' : 'none';
+  addrEl.style.display = showAddressCheckbox.checked ? '' : 'none';
 
-  if (!showSpecs && !showYear && !showType) {
-    factsEl.style.display = 'none';
-  } else {
-    factsEl.style.display = '';
-    const facts = factsEl.textContent.split('  ·  ');
-    const filtered = facts.filter((fact, i) => {
-      if (i === 0) return showSpecs; // beds, baths, sqft
-      if (i === 1) return showYear; // year
-      return showType; // type
-    });
-    factsEl.textContent = filtered.join('  ·  ');
-  }
+  const visible = allFacts.filter((f) => shown[factGroup(f)]);
+  factsEl.textContent = visible.join('  ·  ');
+  factsEl.style.display = visible.length ? '' : 'none';
 }
 
 async function load() {
@@ -154,10 +158,10 @@ async function load() {
   }
   const data = await r.json();
   photos = data.photos || [];
+  allFacts = data.facts || [];
 
   document.title = (data.address || 'Home photos') + ' — Property Snap';
   addrEl.textContent = data.address || 'Home';
-  factsEl.textContent = (data.facts || []).join('  ·  ');
   counterEl.textContent = `${photos.length} photo${photos.length === 1 ? '' : 's'}`;
 
   loadPrefs();

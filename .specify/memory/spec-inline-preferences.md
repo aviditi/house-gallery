@@ -20,9 +20,9 @@ User pastes a Zillow URL and immediately sees four checkboxes on the search page
 
 **Acceptance Scenarios**:
 
-1. **Given** the search page is loaded with an empty input, **When** user pastes a Zillow URL and presses Enter, **Then** the four preference checkboxes appear above or beside the input, all checked by default.
-2. **Given** checkboxes are visible, **When** user unchecks "Show address", **Then** the checkbox state is visually updated (unchecked appearance).
-3. **Given** preferences are customized, **When** user clicks "Snap it", **Then** the gallery opens with those preferences applied (address hidden, other specs shown).
+1. **Given** the search page is loaded for the first time, **When** the user looks at the form, **Then** the four preference chips are visible below the input, all **unselected** — nothing is included until the user opts in.
+2. **Given** chips are visible, **When** user selects "Address", **Then** the chip fills with the accent color and the label brightens.
+3. **Given** preferences are customized, **When** user clicks "Snap it", **Then** the gallery opens with exactly those fields shown and all others hidden.
 4. **Given** the gallery is loaded with custom preferences from search, **When** user checks the preferences button in the gallery, **Then** the preference panel shows the exact state they selected on the search page.
 
 ---
@@ -69,12 +69,14 @@ Checkboxes are clearly labeled, accessible via keyboard (Tab/Space to toggle), a
 ### Functional Requirements
 
 - **FR-001**: Search page MUST display four labeled checkboxes for address, specs, year, and home type visibility.
-- **FR-002**: All checkboxes MUST be checked by default (show all information by default).
+- **FR-002**: All checkboxes MUST be **unchecked** by default. A listing shared without touching them shows photos only — every text field is opt-in.
 - **FR-003**: When user clicks "Snap it", the gallery viewer MUST receive the checkbox state and apply it to the display.
 - **FR-004**: The gallery MUST hide/show address, specs, year, and home type based on checkbox state passed from search page.
 - **FR-005**: Preference state from search page MUST take precedence over localStorage defaults when scraping a fresh listing.
 - **FR-006**: Checkbox state on search page MUST be persisted to localStorage with key `searchPagePrefs`.
-- **FR-007**: System MUST NOT allow users to uncheck all four options (show at least one field, or clarify this is allowed).
+- **FR-007**: Unchecking all four options MUST be allowed — it is the default state, and yields a photos-only gallery.
+- **FR-008**: When the gallery consumes preferences handed over from the search page, it MUST persist them to `prefs_<id>` so returning to that listing later reproduces the same view rather than reverting to the gallery's own defaults.
+- **FR-009**: The facts line MUST be rebuilt from the listing's original fact list on every toggle, and each fact classified by its own shape (`bd`/`ba`/`sqft` → specs, `Built …` → year, otherwise → type). Filtering by array position breaks because the list length varies with what the listing published, and reading the rendered text back in is destructive across repeated toggles.
 
 ### Key Entities
 
@@ -93,7 +95,8 @@ Checkboxes are clearly labeled, accessible via keyboard (Tab/Space to toggle), a
 ## Assumptions
 
 - Users want to set preferences once per scrape session (not change them mid-gallery).
-- Default state is all options shown (privacy-conscious choice; users opt-in to hiding).
+- Default state is all options **hidden**: the safe direction to fail is showing too little, so users opt in to revealing each field rather than opting out of exposing it. This follows the constitution's privacy-first principle ([[constitution]] I).
+- The gallery's own preferences panel still defaults to showing everything when a listing is opened directly with no stored or handed-over preferences (browsing your own library), which is a deliberate asymmetry from the share-creation flow.
 - Mobile layout has room for four checkboxes without breaking the visual hierarchy (stacked vertically or two columns).
 - localStorage is available in all target browsers.
 - Preference customization applies only to the current scrape (shared links carry their own preferences via tokens).
@@ -126,7 +129,7 @@ Checkboxes are clearly labeled, accessible via keyboard (Tab/Space to toggle), a
 
 ## Clarifications Needed
 
-1. **Behavior when all options unchecked**: Should system allow hiding all information, or enforce at least one field visible?
-2. **Checkbox state on new URL paste**: When user pastes a new Zillow URL, should checkboxes reset to defaults or preserve their last state?
+1. ~~**Behavior when all options unchecked**~~ — Resolved: allowed, and it is now the default. A photos-only gallery is a valid share.
+2. **Checkbox state on new URL paste**: When user pastes a new Zillow URL, should checkboxes reset to defaults or preserve their last state? (Currently: preserved, via `searchPagePrefs`.)
 3. **Mobile layout**: Do checkboxes go in one vertical column or two columns? What's the max breakpoint before they stack?
 4. **Preference override**: If a user has a localStorage preference AND opens a shared link with a token, which takes precedence? (Answer: token should; it's explicit intent from the sharer.)
