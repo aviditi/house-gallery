@@ -10,6 +10,11 @@ const hintEl = document.getElementById('hint');
 const proxyNote = document.getElementById('proxy-note');
 const toastEl = document.getElementById('toast');
 
+const showAddressCheckbox = document.getElementById('search-show-address');
+const showSpecsCheckbox = document.getElementById('search-show-specs');
+const showYearCheckbox = document.getElementById('search-show-year');
+const showTypeCheckbox = document.getElementById('search-show-type');
+
 const ICON = {
   photos:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-5-5L5 19"/></svg>',
@@ -72,6 +77,29 @@ async function copyLink(id, btn) {
     btn.classList.add('copied');
     setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1400);
   }
+}
+
+function loadSearchPrefs() {
+  const saved = localStorage.getItem('searchPagePrefs');
+  if (saved) {
+    const prefs = JSON.parse(saved);
+    showAddressCheckbox.checked = prefs.showAddress !== false;
+    showSpecsCheckbox.checked = prefs.showSpecs !== false;
+    showYearCheckbox.checked = prefs.showYear !== false;
+    showTypeCheckbox.checked = prefs.showType !== false;
+  }
+}
+
+function saveSearchPrefs() {
+  const prefs = {
+    showAddress: showAddressCheckbox.checked,
+    showSpecs: showSpecsCheckbox.checked,
+    showYear: showYearCheckbox.checked,
+    showType: showTypeCheckbox.checked,
+  };
+  localStorage.setItem('searchPagePrefs', JSON.stringify(prefs));
+  // Also store in sessionStorage for passing to gallery page
+  sessionStorage.setItem('searchPagePrefs', JSON.stringify(prefs));
 }
 
 async function loadConfig() {
@@ -140,6 +168,9 @@ form.addEventListener('submit', async (e) => {
   const url = urlInput.value.trim();
   if (!url) return;
 
+  // Save preferences before scraping
+  saveSearchPrefs();
+
   goBtn.disabled = true;
   goBtn.innerHTML = '<span class="spinner"></span>Snapping…';
   setStatus('Fetching the listing and stripping prices — this can take 20–40 seconds.', 'working');
@@ -167,6 +198,13 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// Add event listeners to preference checkboxes
+showAddressCheckbox.addEventListener('change', saveSearchPrefs);
+showSpecsCheckbox.addEventListener('change', saveSearchPrefs);
+showYearCheckbox.addEventListener('change', saveSearchPrefs);
+showTypeCheckbox.addEventListener('change', saveSearchPrefs);
+
 showSkeletons(3);
+loadSearchPrefs();
 loadConfig();
 loadListings();

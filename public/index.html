@@ -44,6 +44,28 @@
         <label for="url" class="sr-only" hidden>Listing URL</label>
         <input id="url" name="url" type="url" placeholder="Paste a Zillow link…" autocomplete="off" required />
         <button id="go" class="btn" type="submit">Snap it</button>
+
+        <fieldset class="search-prefs">
+          <legend class="search-prefs-label">What to show:</legend>
+          <div class="search-prefs-group">
+            <label class="search-pref-checkbox">
+              <input type="checkbox" id="search-show-address" name="showAddress" checked />
+              <span>Address</span>
+            </label>
+            <label class="search-pref-checkbox">
+              <input type="checkbox" id="search-show-specs" name="showSpecs" checked />
+              <span>Beds, baths, sqft</span>
+            </label>
+            <label class="search-pref-checkbox">
+              <input type="checkbox" id="search-show-year" name="showYear" checked />
+              <span>Year built</span>
+            </label>
+            <label class="search-pref-checkbox">
+              <input type="checkbox" id="search-show-type" name="showType" checked />
+              <span>Home type</span>
+            </label>
+          </div>
+        </fieldset>
       </form>
 
       <p id="status" class="status" hidden></p>

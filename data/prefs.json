@@ -16,5 +16,17 @@
     "showSpecs": true,
     "showYear": true,
     "showType": true
+  },
+  "aec235683e45fc7459ccb051": {
+    "showAddress": true,
+    "showSpecs": true,
+    "showYear": true,
+    "showType": true
+  },
+  "6b55287e383d110053d82297": {
+    "showAddress": false,
+    "showSpecs": true,
+    "showYear": true,
+    "showType": true
   }
 }

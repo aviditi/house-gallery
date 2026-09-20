@@ -63,31 +63,53 @@ async function loadPrefs() {
   const params = new URLSearchParams(location.search);
   const prefToken = params.get('prefs');
 
+  let prefs = null;
+
+  // Priority 1: URL token (shared link) — highest
   if (prefToken) {
-    // Load from server (shared link preferences)
     try {
       const r = await fetch(`/api/prefs/${prefToken}`);
       if (r.ok) {
-        const prefs = await r.json();
-        showAddressCheckbox.checked = prefs.showAddress !== false;
-        showSpecsCheckbox.checked = prefs.showSpecs !== false;
-        showYearCheckbox.checked = prefs.showYear !== false;
-        showTypeCheckbox.checked = prefs.showType !== false;
+        prefs = await r.json();
       }
     } catch (e) {
-      console.error('Failed to load preferences:', e);
-    }
-  } else {
-    // Load from localStorage (personal preferences)
-    const saved = localStorage.getItem(`prefs_${id}`);
-    if (saved) {
-      const prefs = JSON.parse(saved);
-      showAddressCheckbox.checked = prefs.showAddress !== false;
-      showSpecsCheckbox.checked = prefs.showSpecs !== false;
-      showYearCheckbox.checked = prefs.showYear !== false;
-      showTypeCheckbox.checked = prefs.showType !== false;
+      console.error('Failed to load preferences from token:', e);
     }
   }
+
+  // Priority 2: sessionStorage (from search page customization)
+  if (!prefs) {
+    const sessionPrefs = sessionStorage.getItem('searchPagePrefs');
+    if (sessionPrefs) {
+      try {
+        prefs = JSON.parse(sessionPrefs);
+        sessionStorage.removeItem('searchPagePrefs'); // Clear after use
+      } catch (e) {
+        console.error('Failed to load preferences from sessionStorage:', e);
+      }
+    }
+  }
+
+  // Priority 3: localStorage (personal preferences)
+  if (!prefs) {
+    const saved = localStorage.getItem(`prefs_${id}`);
+    if (saved) {
+      try {
+        prefs = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to load preferences from localStorage:', e);
+      }
+    }
+  }
+
+  // Apply preferences if found
+  if (prefs) {
+    showAddressCheckbox.checked = prefs.showAddress !== false;
+    showSpecsCheckbox.checked = prefs.showSpecs !== false;
+    showYearCheckbox.checked = prefs.showYear !== false;
+    showTypeCheckbox.checked = prefs.showType !== false;
+  }
+
   updateVisibility();
 }
 
