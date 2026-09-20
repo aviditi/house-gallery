@@ -37,35 +37,49 @@
       </p>
 
       <form id="scrape-form" class="search">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7" />
-          <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7" />
-        </svg>
-        <label for="url" class="sr-only" hidden>Listing URL</label>
-        <input id="url" name="url" type="url" placeholder="Paste a Zillow link…" autocomplete="off" required />
-        <button id="go" class="btn" type="submit">Snap it</button>
+        <div class="search-row">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7" />
+            <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7" />
+          </svg>
+          <label for="url" class="sr-only" hidden>Listing URL</label>
+          <input id="url" name="url" type="url" placeholder="Paste a Zillow link…" autocomplete="off" required />
+          <button id="go" class="btn" type="submit">Snap it</button>
+        </div>
 
-        <fieldset class="search-prefs">
-          <legend class="search-prefs-label">What to show:</legend>
+        <div class="search-prefs" role="group" aria-labelledby="search-prefs-label">
+          <span class="search-prefs-label" id="search-prefs-label">Include on the shared page</span>
           <div class="search-prefs-group">
-            <label class="search-pref-checkbox">
+            <label class="pref-chip">
               <input type="checkbox" id="search-show-address" name="showAddress" checked />
-              <span>Address</span>
+              <span class="pref-chip-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5" /></svg>
+              </span>
+              <span class="pref-chip-text">Address</span>
             </label>
-            <label class="search-pref-checkbox">
+            <label class="pref-chip">
               <input type="checkbox" id="search-show-specs" name="showSpecs" checked />
-              <span>Beds, baths, sqft</span>
+              <span class="pref-chip-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5" /></svg>
+              </span>
+              <span class="pref-chip-text">Beds &amp; baths</span>
             </label>
-            <label class="search-pref-checkbox">
+            <label class="pref-chip">
               <input type="checkbox" id="search-show-year" name="showYear" checked />
-              <span>Year built</span>
+              <span class="pref-chip-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5" /></svg>
+              </span>
+              <span class="pref-chip-text">Year built</span>
             </label>
-            <label class="search-pref-checkbox">
+            <label class="pref-chip">
               <input type="checkbox" id="search-show-type" name="showType" checked />
-              <span>Home type</span>
+              <span class="pref-chip-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5" /></svg>
+              </span>
+              <span class="pref-chip-text">Home type</span>
             </label>
           </div>
-        </fieldset>
+        </div>
       </form>
 
       <p id="status" class="status" hidden></p>

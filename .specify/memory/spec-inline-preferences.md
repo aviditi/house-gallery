@@ -102,11 +102,13 @@ Checkboxes are clearly labeled, accessible via keyboard (Tab/Space to toggle), a
 
 ### UI Placement
 
-**Container Structure**: Checkboxes are positioned BELOW the search input/button, but remain WITHIN the overall search container (same border, padding, and visual boundary).
+**Container Structure**: One rounded card (`.search`, 28px radius) split into two attached sections by a hairline divider.
 
-- **Desktop**: Input and "Snap it" button on one line, checkboxes in a 2-column grid below them, all within the container.
-- **Mobile**: Input and "Snap it" button stacked vertically, checkboxes in a single column below, all within the container.
-- **Visual**: All elements (input, button, checkboxes) share the same background, border, and shadow — one unified form block.
+- **Top section** (`.search-row`): link icon, URL input, and the "Snap it" pill button on a single line.
+- **Bottom section** (`.search-prefs`): attached directly below, tinted one step darker/warmer than the input row (`--canvas-2`) so it reads as a distinct but connected sub-panel. Carries a small uppercase label ("Include on the shared page") and the toggles.
+- **Toggles are chips, not bare checkboxes**: each is a pill with a rounded check box and label. Unchecked reads muted with a hollow box; checked fills the box with the accent color, tints the pill background, and brightens the label — state is legible at a glance without reading the checkbox itself.
+- **Wrapping**: chips are a wrapping flex row — one line at desktop width, 2×2 on phones. No fixed grid columns, so label lengths can change without breaking the layout.
+- **Focus**: the native checkbox is visually hidden but still focusable; `:focus-visible` draws a ring on the chip's box for keyboard users.
 
 ### Data Flow
 
