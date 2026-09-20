@@ -12,7 +12,7 @@ The Node.js backend uses only built-in modules (http, fs, path, crypto). No exte
 Responsive image optimization is mandatory: use srcset for resolution scaling, blur-up lightbox patterns for smooth loading, content-visibility for large galleries (100+ photos). CSS Grid galleries with fixed aspect ratios prevent layout shift. First-time load experience equals cached experience—no stutter, no pop-in.
 
 ### IV. Shareable, Customizable Links
-Users can hide address, specs, year, and home type before sharing. Preferences are server-stored and encoded in URLs as opaque tokens—recipients see exactly what was intended, cannot guess or tamper with hiding choices. One link, one intent, no surprises.
+Users can hide address, specs, year, and home type before sharing. A link carries those choices in a signed, opaque token—recipients see exactly what was intended and cannot read or edit the choices. Tokens are stateless and bound to their listing, so they survive restarts and can't be replayed elsewhere. Any token that won't verify **fails closed**: hide everything rather than reveal what the sharer hid.
 
 ### V. Editorial Design
 Modern, catchy visual identity with dark-mode support. Clean typography (Fraunces for headlines, Inter for body), thoughtful spacing, and a cohesive color palette (accent green #0f9b6e). Mobile-first responsive design; remove decorative elements on small screens. Gallery is the star, chrome is minimal.
@@ -21,7 +21,7 @@ Modern, catchy visual identity with dark-mode support. Clean typography (Fraunce
 
 - **Proxy Routing**: Zillow scraping requires residential IPs (datacenter IPs blocked by PerimeterX). Use ScraperAPI, Webshare, or equivalent. Direct mode reserved for testing only.
 - **Photo Extraction**: Parse from Zillow's embedded `__NEXT_DATA__` JSON (responsivePhotos array). Regex fallback when JSON parsing fails. Canonical URL format: `https://photos.zillowstatic.com/fp/<id>-cc_ft_<size>.<format>`
-- **Storage**: File-based JSON (data/listings.json, data/prefs.json) for MVP. Database upgrade path documented but not required for v1.
+- **Storage**: File-based JSON (data/listings.json) for MVP. Database upgrade path documented but not required for v1. Nothing that a shared link depends on may live here — the free tier wipes the filesystem on every deploy, so anything a recipient needs must travel inside the link itself.
 - **Deployment**: Render.com free tier with auto-deploy on git push. Accepts render.yaml blueprint. Filesystem resets on restart—okay for MVP, plan database migration for persistence.
 
 ## Development Workflow
@@ -36,7 +36,7 @@ Modern, catchy visual identity with dark-mode support. Clean typography (Fraunce
 - No credentials in code. Use .env for proxy keys, .gitignore to protect secrets.
 - URL parameters encode only opaque preference tokens (not financial data, not hiding choices).
 - Zillow scraping respects PerimeterX; residential proxy required. No data hoarding—persist only what users explicitly need.
-- Server-side preference storage is immutable once shared (tokens don't expire). Cleanup policy: old preferences pruned monthly.
+- Share tokens are HMAC-signed with `PREFS_SECRET` and bound to their listing id. They hold no personal data, expire never, and require no storage. Rotating the secret invalidates every existing link, which then fail closed.
 
 ## Governance
 

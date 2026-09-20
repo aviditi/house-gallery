@@ -11,14 +11,12 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'listings.json');
-const PREFS_FILE = path.join(DATA_DIR, 'prefs.json');
 
 // ---- storage ---------------------------------------------------------------
 
 function ensureStore() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
-  if (!fs.existsSync(PREFS_FILE)) fs.writeFileSync(PREFS_FILE, '{}');
 }
 
 function readListings() {
@@ -35,22 +33,49 @@ function writeListings(list) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2));
 }
 
-function readPrefs() {
-  ensureStore();
-  try {
-    return JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8')) || {};
-  } catch (e) {
-    return {};
-  }
+// ---- share tokens ----------------------------------------------------------
+// A token carries the sharer's choices inside itself rather than pointing at a
+// stored row: four bits, plus an HMAC so a recipient can't edit the bits. It
+// needs no storage, so it keeps working across restarts and redeploys — the
+// free tier wipes the filesystem, which previously killed every shared link.
+//
+// The signature covers the listing id too, so a token minted for one listing
+// can't be replayed against another (there are only 16 distinct bit patterns,
+// and without the binding a "show everything" token would unlock any gallery).
+
+const PREFS_SECRET = process.env.PREFS_SECRET || 'property-snap-dev-secret';
+if (!process.env.PREFS_SECRET) {
+  console.warn('PREFS_SECRET is not set — using the development default. Set it in the environment so share links survive a restart.');
 }
 
-function writePrefs(prefs) {
-  ensureStore();
-  fs.writeFileSync(PREFS_FILE, JSON.stringify(prefs, null, 2));
+const PREF_BITS = [
+  ['showAddress', 1],
+  ['showSpecs', 2],
+  ['showYear', 4],
+  ['showType', 8],
+];
+
+function signPrefs(body) {
+  return crypto.createHmac('sha256', PREFS_SECRET).update(body).digest('base64url').slice(0, 22);
 }
 
-function generatePrefToken() {
-  return crypto.randomBytes(12).toString('hex');
+function encodePrefToken(id, prefs) {
+  const mask = PREF_BITS.reduce((m, [key, bit]) => (prefs[key] ? m | bit : m), 0);
+  const body = mask.toString(16);
+  return body + signPrefs(`${id}:${body}`);
+}
+
+function decodePrefToken(id, token) {
+  if (typeof token !== 'string' || !/^[0-9a-f][A-Za-z0-9_-]+$/.test(token)) return null;
+
+  const body = token.slice(0, 1);
+  const expected = signPrefs(`${id}:${body}`);
+  const got = Buffer.from(token.slice(1));
+  if (got.length !== expected.length) return null;
+  if (!crypto.timingSafeEqual(got, Buffer.from(expected))) return null;
+
+  const mask = parseInt(body, 16);
+  return Object.fromEntries(PREF_BITS.map(([key, bit]) => [key, !!(mask & bit)]));
 }
 
 // ---- price-free sanitization ----------------------------------------------
@@ -192,23 +217,21 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/prefs' && req.method === 'POST') {
     try {
       const body = JSON.parse(await readBody(req));
-      const prefs = readPrefs();
-      const token = generatePrefToken();
-      prefs[token] = body;
-      writePrefs(prefs);
-      return sendJson(res, 201, { token });
+      const listingId = String(body.id || '');
+      if (!/^[a-f0-9]{6,32}$/.test(listingId)) {
+        return sendJson(res, 400, { error: 'Invalid listing id.' });
+      }
+      return sendJson(res, 201, { token: encodePrefToken(listingId, body.prefs || {}) });
     } catch (e) {
       return sendJson(res, 400, { error: 'Invalid request.' });
     }
   }
 
-  const prefMatch = pathname.match(/^\/api\/prefs\/([a-f0-9]+)$/);
+  const prefMatch = pathname.match(/^\/api\/prefs\/([a-f0-9]{6,32})\/([A-Za-z0-9_-]{2,64})$/);
   if (prefMatch && req.method === 'GET') {
-    const token = prefMatch[1];
-    const prefs = readPrefs();
-    const found = prefs[token];
-    if (!found) return sendJson(res, 404, { error: 'Preferences not found' });
-    return sendJson(res, 200, found);
+    const prefs = decodePrefToken(prefMatch[1], prefMatch[2]);
+    if (!prefs) return sendJson(res, 404, { error: 'Preferences not found' });
+    return sendJson(res, 200, prefs);
   }
 
   if (pathname === '/api/listings' && req.method === 'GET') {

@@ -64,6 +64,7 @@ node server.js
 - `PROXY_PROVIDER` — `scraperapi`, `zenrows`, `scrapeops`, `webshare`, or `direct` (not recommended)
 - `PROXY_API_KEY` — Your API key for the chosen provider (not needed for `webshare` or `direct`)
 - `PROXY_URL` — Full connection string for raw proxy services (e.g., `http://user:pass@proxy.host:port`)
+- `PREFS_SECRET` — Signs share links so recipients can't edit which fields are hidden. Generate with `openssl rand -base64 32`. On Render it's created automatically via `render.yaml` and kept across deploys. Rotating it invalidates every link already shared.
 - `PORT` — Server port (default `3000`)
 
 ## How It Works
@@ -103,6 +104,19 @@ Scrape a listing.
 **Body:** `{ "url": "https://www.zillow.com/..." }`  
 **Response:** `{ "id": "abc123", "url": "/v/abc123", "count": 42, "address": "..." }`
 
+### `POST /api/prefs`
+Mint a share token for a listing.  
+**Body:** `{ "id": "abc123", "prefs": { "showAddress": true, "showSpecs": false, ... } }`  
+**Response:** `{ "token": "1IdgIENf3mGhzZ-SqbYKyVC" }`
+
+The token carries the choices inside itself, HMAC-signed with `PREFS_SECRET` and
+bound to the listing id — so it needs no storage, survives redeploys, can't be
+edited by the recipient, and can't be replayed against a different listing.
+
+### `GET /api/prefs/<id>/<token>`
+Verify a token and return the preferences it encodes. `404` if the signature
+doesn't check out; the viewer treats that as "hide everything".
+
 ### `GET /api/listings`
 List all saved homes (metadata only).
 
@@ -141,7 +155,7 @@ house-gallery/
 ## Limitations
 
 - **Zillow fetch requires a residential proxy** (datacenter IPs are blocked by PerimeterX). ScraperAPI's free tier renders JS and routes through residential IPs; it's the recommended provider.
-- **Free Render tier** resets the filesystem on deploy/restart — saved listings survive restarts but will clear if you push code changes. For persistent listings, upgrade to Render's paid tier or use a database.
+- **Free Render tier** resets the filesystem on deploy/restart — saved listings survive restarts but will clear if you push code changes. For persistent listings, upgrade to Render's paid tier or use a database. Share links are unaffected: their settings ride inside the token rather than in a file.
 
 ## Future Ideas
 

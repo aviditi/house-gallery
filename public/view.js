@@ -66,15 +66,17 @@ async function loadPrefs() {
 
   let prefs = null;
 
-  // Priority 1: URL token (shared link) — highest
+  // Priority 1: URL token (shared link) — highest. A token that won't verify
+  // fails closed: the sharer asked for something to be hidden, so on any doubt
+  // hide everything rather than fall back to showing it.
   if (prefToken) {
     try {
-      const r = await fetch(`/api/prefs/${prefToken}`);
-      if (r.ok) {
-        prefs = await r.json();
-      }
+      const r = await fetch(`/api/prefs/${id}/${encodeURIComponent(prefToken)}`);
+      prefs = r.ok
+        ? await r.json()
+        : { showAddress: false, showSpecs: false, showYear: false, showType: false };
     } catch (e) {
-      console.error('Failed to load preferences from token:', e);
+      prefs = { showAddress: false, showSpecs: false, showYear: false, showType: false };
     }
   }
 
@@ -299,7 +301,7 @@ shareBtn.addEventListener('click', async () => {
     const r = await fetch('/api/prefs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(prefs),
+      body: JSON.stringify({ id, prefs }),
     });
     if (!r.ok) throw new Error('Failed to create preferences');
     const { token } = await r.json();
